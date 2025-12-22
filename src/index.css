@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+  --color-eco: #16a34a;
+}
+
+body {
+  background-color: #f0fdf4; /* green-50 */
+  color: #1f2937; /* gray-800 */
+}
