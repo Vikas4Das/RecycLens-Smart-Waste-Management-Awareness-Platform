@@ -1,4 +1,4 @@
-RecycLens – Smart Waste Management Platform
+#RecycLens – Smart Waste Management Platform
 SDG 12: Responsible Consumption & Production
 
 RecycLens is a smart platform focused on waste identification, recycling awareness, gamification, and tracking user recycling habits.
