@@ -19,22 +19,22 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <div className="flex flex-col min-h-screen">
-          <Navbar />
+        <Navbar />
           <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-              <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/upload" element={<WasteUpload />} />
-                <Route path="/quiz" element={<Quiz />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/map" element={<MapPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/upload" element={<WasteUpload />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/map" element={<MapPage />} />
                 <Route path="/rewards" element={<Rewards />} />
-              </Route>
-            </Routes>
+          </Route>
+        </Routes>
           </main>
           <Footer />
         </div>

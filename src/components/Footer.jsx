@@ -93,60 +93,60 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a
-                  href="#about"
+                <Link
+                  to="/about"
                   className="hover:text-green-400 transition-colors"
                 >
                   ℹ️ About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#how-it-works"
+                <Link
+                  to="/how-it-works"
                   className="hover:text-green-400 transition-colors"
                 >
                   🔧 How It Works
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#recycling-guide"
+                <Link
+                  to="/recycling-guide"
                   className="hover:text-green-400 transition-colors"
                 >
                   📚 Recycling Guide
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#faq"
+                <Link
+                  to="/faq"
                   className="hover:text-green-400 transition-colors"
                 >
                   ❓ FAQ
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#contact"
+                <Link
+                  to="/contact"
                   className="hover:text-green-400 transition-colors"
                 >
                   📧 Contact Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#privacy"
+                <Link
+                  to="/privacy"
                   className="hover:text-green-400 transition-colors"
                 >
                   🔒 Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#terms"
+                <Link
+                  to="/terms"
                   className="hover:text-green-400 transition-colors"
                 >
                   📄 Terms of Service
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -264,27 +264,21 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-center md:text-left">
-              © {currentYear} Smart Waste Management Platform. All rights reserved.
+              © {currentYear} Smart Waste Management Platform. All rights reserved , Created by Vikas Das❤️.
             </p>
             <div className="flex gap-6 text-sm">
-              <a
-                href="#privacy"
+              <Link
+                to="/privacy"
                 className="hover:text-green-400 transition-colors"
               >
                 Privacy Policy
-              </a>
-              <a
-                href="#terms"
+              </Link>
+              <Link
+                to="/terms"
                 className="hover:text-green-400 transition-colors"
               >
                 Terms of Service
-              </a>
-              <a
-                href="#cookies"
-                className="hover:text-green-400 transition-colors"
-              >
-                Cookie Policy
-              </a>
+              </Link>
             </div>
           </div>
         </div>
