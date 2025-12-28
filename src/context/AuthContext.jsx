@@ -1,8 +1,8 @@
 import { createContext, useState, useEffect } from "react";
 
-export const AuthContext = createContext();
+const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -75,29 +75,17 @@ export const AuthProvider = ({ children }) => {
     ];
 
     // Update streak and daily uploads
-    const lastUploadDate = user.lastUploadDate;
     const today = new Date().toISOString().split("T")[0];
-    let newStreak = user.streak || 0;
-    
+
     // Update daily uploads tracking
-    const dailyUploads = user.dailyUploads || {};
+    const dailyUploads = { ...(user.dailyUploads || {}) };
     if (!dailyUploads[today]) {
       dailyUploads[today] = [];
     }
-    dailyUploads[today].push({
+    dailyUploads[today] = [...dailyUploads[today], {
       type: wasteType,
       time: new Date().toISOString(),
-    });
-    
-    if (lastUploadDate === today) {
-      // Already uploaded today, don't change streak
-    } else if (!lastUploadDate || getDaysDifference(lastUploadDate, today) === 1) {
-      // Consecutive day or first upload
-      newStreak = (user.streak || 0) + 1;
-    } else {
-      // Streak broken
-      newStreak = 1;
-    }
+    }];
 
     // Calculate current streak from daily uploads
     const calculatedStreak = calculateStreak(dailyUploads);
@@ -112,13 +100,6 @@ export const AuthProvider = ({ children }) => {
       lastUploadDate: today,
       dailyUploads: dailyUploads,
     });
-  };
-
-  const getDaysDifference = (date1, date2) => {
-    const d1 = new Date(date1);
-    const d2 = new Date(date2);
-    const diffTime = Math.abs(d2 - d1);
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
   const calculateStreak = (dailyUploads) => {
@@ -157,3 +138,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export { AuthContext, AuthProvider };
