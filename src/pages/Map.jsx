@@ -1,4 +1,5 @@
 import { useState } from "react";
+import JharkhandMap from "../assets/jharkhand-map.svg";
 
 const WASTE_CENTERS = [
   {
@@ -113,6 +114,9 @@ export default function MapPage() {
   const [filterState, setFilterState] = useState("All");
   const [filterType, setFilterType] = useState("All");
 
+  const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const isApiKeyValid = googleMapsApiKey && googleMapsApiKey.trim() !== "";
+
   // Get unique states
   const states = ["All", ...new Set(WASTE_CENTERS.map((center) => center.state))];
   
@@ -151,7 +155,7 @@ export default function MapPage() {
     return colors[type] || "bg-gray-100 text-gray-700";
   };
 
-  const openGoogleMaps = (lat, lng, name) => {
+  const openGoogleMaps = (lat, lng) => {
     const url = `https://www.google.com/maps?q=${lat},${lng}&hl=en`;
     window.open(url, "_blank");
   };
@@ -239,17 +243,39 @@ export default function MapPage() {
               
               {/* Map Container */}
               <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ height: "600px" }}>
-                {/* Google Maps Embed */}
-                <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://www.google.com/maps/embed/v1/view?key=AIzaSyBFw0Qbyq9zTFTd-tUY6d-s6U4uUgdx7yg&center=23.3441,85.3096&zoom=7`}
-                  title="Waste Collection Centers Map"
-                ></iframe>
+                {isApiKeyValid ? (
+                  /* Google Maps Embed */
+                  <div
+  className="relative rounded-lg overflow-hidden"
+  style={{ height: "600px" }}
+>
+  <img
+    src="/src/assets/jharkhand-map.svg"
+    className="w-full h-full object-cover"
+    alt="Jharkhand Map"
+  />
+
+  <div className="absolute top-4 left-4 bg-white/90 px-4 py-2 rounded shadow">
+    <h3 className="font-bold text-green-700">
+      Jharkhand Waste Centers
+    </h3>
+    <p className="text-sm text-gray-600">
+      Static preview map
+    </p>
+  </div>
+</div>
+                ) : (
+                  <div className="flex items-center justify-center h-full bg-gray-200">
+                    <div className="text-center p-6">
+                      {/* TODO: Replace this with a proper map image */}
+                      <img src={JharkhandMap} alt="Map of Jharkhand" className="h-64 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-gray-700 mb-2">Map Unavailable</h3>
+                      <p className="text-gray-600 mb-4">
+                        To view the interactive map, please set up a Google Maps API key.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Custom Markers Overlay Info */}
                 {selectedCenter && (
@@ -405,7 +431,7 @@ export default function MapPage() {
                 </div>
                 
                 <button
-                  onClick={() => openGoogleMaps(selectedCenter.lat, selectedCenter.lng, selectedCenter.name)}
+                  onClick={() => openGoogleMaps(selectedCenter.lat, selectedCenter.lng)}
                   className="mt-6 w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition shadow-lg"
                 >
                   🗺️ Open in Google Maps

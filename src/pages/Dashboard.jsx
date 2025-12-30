@@ -31,97 +31,22 @@ ChartJS.register(
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user, login } = useContext(AuthContext);
+  const { user } = useContext(AuthContext); // Simplified: Direct use of user from context
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [showUploadHistoryModal, setShowUploadHistoryModal] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [dashboardUser, setDashboardUser] = useState(user);
-  const [animatedPoints, setAnimatedPoints] = useState(0);
-  const [animatedStreak, setAnimatedStreak] = useState(0);
-  const [animatedUploads, setAnimatedUploads] = useState(0);
+  
+  // State for animated numbers
+  const [animatedPoints, setAnimatedPoints] = useState(user?.points || 0);
+  const [animatedStreak, setAnimatedStreak] = useState(user?.streak || 0);
+  const [animatedUploads, setAnimatedUploads] = useState(user?.uploads || 0);
 
-  // Function to refresh user data
-  const refreshUserData = () => {
-    setIsRefreshing(true);
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setDashboardUser(userData);
-        if (userData.id === user?.id) {
-          login(userData);
-        }
-        setLastUpdated(new Date());
-      } catch (e) {
-        console.error("Error refreshing user data:", e);
-      }
-    }
-    setIsRefreshing(false);
-  };
-
-  // Auto-refresh every 5 seconds and on mount
-  useEffect(() => {
-    const refresh = () => {
-      setIsRefreshing(true);
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setDashboardUser(userData);
-          if (userData.id === user?.id) {
-            login(userData);
-          }
-          setLastUpdated(new Date());
-        } catch (e) {
-          console.error("Error refreshing user data:", e);
-        }
-      }
-      setIsRefreshing(false);
-    };
-
-    refresh();
-    const interval = setInterval(refresh, 5000);
-
-    window.addEventListener("storage", refresh);
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("storage", refresh);
-    };
-  }, [user, login]);
-
-  // Sync dashboardUser when user context changes OR location changes (back/forward navigation)
-  useEffect(() => {
-    const syncUserData = () => {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          // Always sync if data is different (handles back/forward navigation)
-          setDashboardUser(prev => {
-            if (!prev || prev.id !== userData.id || JSON.stringify(prev) !== JSON.stringify(userData)) {
-              if (userData.id === user?.id) {
-                login(userData);
-              }
-              setLastUpdated(new Date());
-              return userData;
-            }
-            return prev;
-          });
-        } catch {
-          // Ignore parse errors
-        }
-      }
-    };
-
-    // Sync on mount, user change, or location change (handles back/forward navigation)
-    syncUserData();
-  }, [user, location.pathname, location.key, login]);
-
-  // Animate numbers
+  // Animate numbers when user data changes
   useEffect(() => {
     const animateValue = (start, end, setter, duration = 1000) => {
+      if (start === end) {
+        setter(end);
+        return;
+      }
       const startTime = Date.now();
       const animate = () => {
         const now = Date.now();
@@ -136,28 +61,38 @@ export default function Dashboard() {
       animate();
     };
 
-    if (dashboardUser) {
-      animateValue(0, dashboardUser.points || 0, setAnimatedPoints);
-      animateValue(0, dashboardUser.streak || 0, setAnimatedStreak);
-      animateValue(0, dashboardUser.uploads || 0, setAnimatedUploads);
+    if (user) {
+      // Animate from previous value to new value
+      animateValue(animatedPoints, user.points || 0, setAnimatedPoints);
+      animateValue(animatedStreak, user.streak || 0, setAnimatedStreak);
+      animateValue(animatedUploads, user.uploads || 0, setAnimatedUploads);
     }
-  }, [dashboardUser]);
+  }, [user]);
+
+  if (!user) {
+    // Optional: Render a loading state or redirect
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <p>Loading user data...</p>
+      </div>
+    );
+  }
 
   const stats = {
-    points: dashboardUser?.points || 0,
-    streak: dashboardUser?.streak || 0,
-    uploads: dashboardUser?.uploads || 0,
+    points: user?.points || 0,
+    streak: user?.streak || 0,
+    uploads: user?.uploads || 0,
   };
 
-  const wasteCounts = dashboardUser?.wasteCounts || {
+  const wasteCounts = user?.wasteCounts || {
     Plastic: 0,
     Paper: 0,
     Organic: 0,
     "E-Waste": 0,
   };
 
-  const recentUploads = dashboardUser?.recentUploads || [];
-  const dailyUploads = dashboardUser?.dailyUploads || {};
+  const recentUploads = user?.recentUploads || [];
+  const dailyUploads = user?.dailyUploads || {};
 
   // Calculate environmental impact
   const calculateImpact = () => {
@@ -219,30 +154,14 @@ export default function Dashboard() {
                   <span className="text-3xl sm:text-4xl md:text-5xl animate-bounce">🌱</span>
                   <span className="break-words">My Eco Dashboard</span>
                 </h2>
-                <p className="text-gray-600 mt-1 sm:mt-2 text-xs sm:text-sm flex items-center gap-2 flex-wrap">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  <span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
-                  {isRefreshing && (
-                    <span className="inline-flex items-center gap-1 text-green-600">
-                      <span className="animate-spin text-sm">🔄</span>
-                      <span className="text-xs">Refreshing...</span>
-                    </span>
-                  )}
+                <p className="text-gray-600 mt-1 sm:mt-2 text-xs sm:text-sm">
+                  Welcome back, {user.name || "Eco Warrior"}!
                 </p>
               </div>
             </div>
 
             {/* Quick Actions - Responsive Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-              <button
-                onClick={refreshUserData}
-                disabled={isRefreshing}
-                className="px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm shadow-lg transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 transform hover:scale-105 disabled:scale-100 active:scale-95"
-              >
-                <span className={isRefreshing ? "animate-spin text-sm sm:text-base" : "text-sm sm:text-base"}>🔄</span>
-                <span className="hidden sm:inline">{isRefreshing ? "Refreshing..." : "Refresh"}</span>
-                <span className="sm:hidden">{isRefreshing ? "..." : "Refresh"}</span>
-              </button>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <Link
                 to="/upload"
                 className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-1 sm:gap-2"
@@ -273,31 +192,31 @@ export default function Dashboard() {
 
         {/* STATS CARDS - Fully Responsive */}
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4 sm:mb-6">
-          <StatCard
-            title="Total Points"
+        <StatCard
+          title="Total Points"
             value={animatedPoints}
-            icon="⭐"
+          icon="⭐"
             gradient="from-yellow-400 to-orange-500"
-            clickable
-            onClick={() => navigate("/rewards")}
+          clickable
+          onClick={() => navigate("/rewards")}
             subtitle={`${nextMilestone - stats.points} to next milestone`}
-          />
-          <StatCard
-            title="Current Streak"
+        />
+        <StatCard
+          title="Current Streak"
             value={`${animatedStreak}`}
-            icon="🔥"
+          icon="🔥"
             gradient="from-red-400 to-orange-500"
-            clickable
-            onClick={() => setShowStreakModal(true)}
+          clickable
+          onClick={() => setShowStreakModal(true)}
             subtitle="Keep it going!"
-          />
-          <StatCard
-            title="Waste Uploaded"
+        />
+        <StatCard
+          title="Waste Uploaded"
             value={animatedUploads}
-            icon="♻️"
+          icon="♻️"
             gradient="from-green-400 to-emerald-500"
-            clickable
-            onClick={() => setShowUploadHistoryModal(true)}
+          clickable
+          onClick={() => setShowUploadHistoryModal(true)}
             subtitle={`${impact.totalWaste} items recycled`}
           />
           <StatCard
@@ -308,8 +227,8 @@ export default function Dashboard() {
             clickable
             onClick={() => navigate("/leaderboard")}
             subtitle={`${achievements.length} badges unlocked`}
-          />
-        </div>
+        />
+      </div>
 
         {/* ENVIRONMENTAL IMPACT CARDS - Responsive */}
         <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-3 mb-4 sm:mb-6">
@@ -362,21 +281,21 @@ export default function Dashboard() {
               <span>📊</span>
               <span>Waste Classification Overview</span>
               <span className="text-xs sm:text-sm text-green-600 font-normal ml-auto group-hover:text-green-700 transition">Click to learn more →</span>
-            </h3>
+          </h3>
             <div className="h-48 sm:h-64 md:h-80">
-              <Bar
-                data={{
-                  labels: ["Plastic", "Paper", "Organic", "E-Waste"],
-                  datasets: [
-                    {
-                      label: "Waste Count",
-                      data: [
-                        wasteCounts.Plastic || 0,
-                        wasteCounts.Paper || 0,
-                        wasteCounts.Organic || 0,
-                        wasteCounts["E-Waste"] || 0,
-                      ],
-                      backgroundColor: [
+        <Bar
+          data={{
+            labels: ["Plastic", "Paper", "Organic", "E-Waste"],
+            datasets: [
+              {
+                label: "Waste Count",
+                  data: [
+                    wasteCounts.Plastic || 0,
+                    wasteCounts.Paper || 0,
+                    wasteCounts.Organic || 0,
+                    wasteCounts["E-Waste"] || 0,
+                  ],
+                  backgroundColor: [
                         "rgba(59, 130, 246, 0.8)",
                         "rgba(251, 191, 36, 0.8)",
                         "rgba(34, 197, 94, 0.8)",
@@ -387,17 +306,17 @@ export default function Dashboard() {
                         "rgb(251, 191, 36)",
                         "rgb(34, 197, 94)",
                         "rgb(168, 85, 247)",
-                      ],
+                  ],
                       borderWidth: 2,
                       borderRadius: 12,
-                    },
-                  ],
-                }}
-                options={{
-                  responsive: true,
+              },
+            ],
+          }}
+            options={{
+              responsive: true,
                   maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
+              plugins: {
+                legend: {
                       display: false,
                     },
                     tooltip: {
@@ -428,12 +347,12 @@ export default function Dashboard() {
                           size: 11,
                         },
                       },
-                    },
-                  },
-                }}
-              />
+                },
+              },
+            }}
+          />
             </div>
-          </div>
+        </div>
 
           {/* WEEKLY TREND */}
           <div 
@@ -453,7 +372,7 @@ export default function Dashboard() {
               <span>📈</span>
               <span>7-Day Trend</span>
               <span className="text-xs sm:text-sm text-green-600 font-normal ml-auto group-hover:text-green-700 transition">View details →</span>
-            </h3>
+          </h3>
             <div className="h-48 sm:h-64 md:h-80">
               <Line
                 data={{
@@ -598,8 +517,8 @@ export default function Dashboard() {
                 </button>
               </div>
             )}
-          </div>
         </div>
+      </div>
 
         {/* RECENT UPLOADS - Responsive */}
         <div className="bg-white/90 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 border border-green-100">
@@ -607,7 +526,7 @@ export default function Dashboard() {
             <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
               <span>📋</span>
               Recent Activity
-            </h3>
+        </h3>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
               {recentUploads.length > 0 && (
                 <button
@@ -650,7 +569,7 @@ export default function Dashboard() {
                       {item.type === "Organic" && "🍃"}
                       {item.type === "E-Waste" && "💻"}
                     </span>
-                  </div>
+        </div>
                   <div className="text-xs sm:text-sm text-gray-600">{item.date}</div>
                   <div className="mt-2 text-xs text-green-600 font-semibold">+10 points</div>
                   <div className="mt-1 text-xs text-gray-500">Click to upload more →</div>
@@ -669,23 +588,23 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-        </div>
+      </div>
 
-        {/* Streak Modal */}
-        {showStreakModal && (
-          <StreakModal
-            user={dashboardUser}
-            onClose={() => setShowStreakModal(false)}
-          />
-        )}
+      {/* Streak Modal */}
+      {showStreakModal && (
+        <StreakModal
+          user={user}
+          onClose={() => setShowStreakModal(false)}
+        />
+      )}
 
-        {/* Upload History Modal */}
-        {showUploadHistoryModal && (
-          <UploadHistoryModal
-            user={dashboardUser}
-            onClose={() => setShowUploadHistoryModal(false)}
-          />
-        )}
+      {/* Upload History Modal */}
+      {showUploadHistoryModal && (
+        <UploadHistoryModal
+          user={user}
+          onClose={() => setShowUploadHistoryModal(false)}
+        />
+      )}
       </div>
     </div>
   );
@@ -877,15 +796,15 @@ function StreakModal({ user, onClose }) {
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              onClose();
+            <button
+              onClick={() => {
+                onClose();
               navigate("/upload");
-            }}
+              }}
             className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-lg transform hover:scale-105 active:scale-95 text-base sm:text-lg"
-          >
-            Upload Waste Now ➕
-          </button>
+            >
+              Upload Waste Now ➕
+            </button>
         </div>
       </div>
     </div>

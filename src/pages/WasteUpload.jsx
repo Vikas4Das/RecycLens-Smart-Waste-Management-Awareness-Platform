@@ -9,14 +9,18 @@ export default function WasteUpload() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const { addUpload } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const processFile = (file) => {
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size should be less than 5MB");
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        setError("Please upload a valid image file (PNG, JPG, etc.)");
         return;
       }
       setImageFile(file);
@@ -24,6 +28,29 @@ export default function WasteUpload() {
       setResult(null);
       setError(null);
     }
+  };
+
+  const handleFileChange = (e) => {
+    processFile(e.target.files[0]);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    if (!isAnalyzing) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    if (isAnalyzing) return;
+    setIsDragging(false);
+    processFile(e.dataTransfer.files[0]);
   };
 
   const handleAnalyze = async () => {
@@ -76,7 +103,14 @@ export default function WasteUpload() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Waste Image
                 </label>
-                <div className="border-2 border-dashed border-green-300 rounded-lg p-8 text-center hover:border-green-500 transition">
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  className={`border-2 border-dashed border-green-300 rounded-lg p-8 text-center hover:border-green-500 transition ${
+                    isDragging ? "border-green-500 bg-green-50" : ""
+                  }`}
+                >
                   <input
                     type="file"
                     accept="image/*"
